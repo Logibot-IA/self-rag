@@ -1,0 +1,10 @@
+[
+    {
+        "question": "O que é algoritmo?",
+        "ground_truth": "Um algoritmo é uma sequência finita de passos para resolver um problema."
+    },
+    {
+        "question": "O que é variável?",
+        "ground_truth": "Variável é um espaço na memória usado para armazenar dados."
+    }
+]
