@@ -1,9 +1,11 @@
 fastapi
 uvicorn
-langchain
-langchain-community
-chromadb
-pypdf
 requests
-ragas
+chromadb
 datasets
+ragas
+ollama
+
+langchain
+langchain-ollama
+langchain-chroma
