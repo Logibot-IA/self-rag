@@ -1,13 +1,13 @@
 import json
 from datasets import Dataset
 from ragas import evaluate
-from ragas.metrics.collections import (
-    faithfulness,
-    answer_relevancy,
-    context_precision,
-    context_recall,
+from ragas.metrics import (
+    Faithfulness,
+    AnswerRelevancy,
+    ContextPrecision,
+    ContextRecall,
 )
-from langchain_community.chat_models import ChatOllama
+from langchain_ollama import ChatOllama
 from src.rag import self_rag
 
 DATASET_PATH = "src/dataset.json"
@@ -25,14 +25,14 @@ for item in data:
     q = item["question"]
     gt = item["ground_truth"]
 
-    response = self_rag(q)
+    response, docs = self_rag(q)
 
     questions.append(q)
     answers.append(response)
     ground_truths.append(gt)
 
     # Context dummy — pode evoluir depois para capturar real retrieval
-    contexts.append(["context retrieved"])
+    contexts.append([doc.page_content for doc in docs])
 
 dataset = Dataset.from_dict({
     "question": questions,
@@ -49,10 +49,10 @@ llm = ChatOllama(
 result = evaluate(
     dataset,
     metrics=[
-        faithfulness,
-        answer_relevancy,
-        context_precision,
-        context_recall,
+        Faithfulness(),
+        AnswerRelevancy(),
+        ContextPrecision(),
+        ContextRecall(),
     ],
     llm=llm,
 )

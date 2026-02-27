@@ -123,4 +123,4 @@ Resposta anterior:
 
         answer = generate(refine_prompt)
 
-    return answer
+    return answer, docs
