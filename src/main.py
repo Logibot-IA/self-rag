@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.rag import self_rag
+from src.rag import self_rag
 
 app = FastAPI()
 

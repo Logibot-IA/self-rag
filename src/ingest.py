@@ -1,7 +1,9 @@
-from langchain.document_loaders import PyPDFLoader
+from langchain_community.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.embeddings import OllamaEmbeddings
-from langchain.vectorstores import Chroma
+from langchain_ollama import OllamaEmbeddings
+from langchain_chroma import Chroma
+
+PERSIST_DIR = "/app/chroma_db"
 
 def ingest_pdf(path: str):
     loader = PyPDFLoader(path)
@@ -21,7 +23,7 @@ def ingest_pdf(path: str):
     vectordb = Chroma.from_documents(
         chunks,
         embeddings,
-        persist_directory="./chroma_db"
+        persist_directory=PERSIST_DIR
     )
 
     vectordb.persist()
