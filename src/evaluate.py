@@ -1,60 +1,32 @@
-import json
-from datasets import Dataset
 from ragas import evaluate
-from ragas.metrics import (
-    Faithfulness,
-    AnswerRelevancy,
-    ContextPrecision,
-    ContextRecall,
-)
-from langchain_ollama import ChatOllama
-from src.rag import self_rag
+from ragas.metrics import faithfulness, answer_relevancy, context_precision
+from datasets import Dataset
+from rag_pipeline import get_llm
+from langchain_openai import OpenAIEmbeddings
+import os
 
-DATASET_PATH = "src/dataset.json"
+def run_evaluation(question, answer, context):
+    data = {
+        "question": [question],
+        "answer": [answer],
+        "contexts": [[context]]
+    }
 
-with open(DATASET_PATH, "r", encoding="utf-8") as f:
-    data = json.load(f)
+    dataset = Dataset.from_dict(data)
 
-questions = []
-answers = []
-ground_truths = []
-contexts = []
+    llm = get_llm()
 
-for item in data:
+    embeddings = OpenAIEmbeddings(
+        base_url=os.getenv("DO_BASE_URL"),
+        api_key=os.getenv("DO_API_KEY"),
+        model="text-embedding-3-large"
+    )
 
-    q = item["question"]
-    gt = item["ground_truth"]
+    result = evaluate(
+        dataset,
+        metrics=[faithfulness, answer_relevancy, context_precision],
+        llm=llm,
+        embeddings=embeddings
+    )
 
-    response, docs = self_rag(q)
-
-    questions.append(q)
-    answers.append(response)
-    ground_truths.append(gt)
-
-    # Context dummy — pode evoluir depois para capturar real retrieval
-    contexts.append([doc.page_content for doc in docs])
-
-dataset = Dataset.from_dict({
-    "question": questions,
-    "answer": answers,
-    "contexts": contexts,
-    "ground_truth": ground_truths,
-})
-
-llm = ChatOllama(
-    model="mistral",
-    base_url="http://ollama:11434"
-)
-
-result = evaluate(
-    dataset,
-    metrics=[
-        Faithfulness(),
-        AnswerRelevancy(),
-        ContextPrecision(),
-        ContextRecall(),
-    ],
-    llm=llm,
-)
-
-print(result)
+    print(result)
