@@ -1,140 +1,71 @@
-# 📚 Self-RAG com Avaliação Automática usando RAGAS
+# Self-RAG
 
-Implementação de um sistema **Self-RAG dockerizado**, utilizando:
+Sistema de Retrieval-Augmented Generation com auto-reflexão e avaliação por métricas RAGAS.
 
--   Ollama (LLM local)
--   Chroma (Banco Vetorial)
--   RAGAS (Avaliação automática)
--   FastAPI
--   Docker
+## Descrição
 
-------------------------------------------------------------------------
+Implementação de Self-RAG que processa documentos PDF, realiza busca semântica e gera respostas com mecanismo de auto-crítica. O sistema avalia a qualidade das respostas usando métricas de fidelidade, relevância e precisão de contexto.
 
-# 🎯 Objetivo do Projeto
+## Funcionalidades
 
-Este projeto implementa:
+- Indexação de documentos PDF com ChromaDB
+- Embeddings via HuggingFace (all-MiniLM-L6-v2)
+- Self-RAG com auto-crítica de respostas
+- Avaliação automática com RAGAS
+- Suporte a LLMs compatíveis com OpenAI API
 
--   ✅ Retrieval-Augmented Generation (RAG)
--   ✅ Self-Refinement (Self-RAG)
--   ✅ Avaliação automática com métricas acadêmicas
--   ✅ Ambiente 100% dockerizado
--   ✅ Preparado para ingestão futura de PDF (livro de lógica de
-    programação)
+## Requisitos
 
-------------------------------------------------------------------------
+- Python 3.8+
+- Chave de API para LLM (DigitalOcean AI ou OpenAI compatível)
+- Token HuggingFace (opcional)
 
-# 🧠 Conceito de Self-RAG
+## Instalação
 
-Fluxo do sistema:
-
-Pergunta → Recuperação → Resposta inicial → Autoavaliação → Refinamento
-
-------------------------------------------------------------------------
-
-# 🏗 Arquitetura
-
-Usuário\
-↓\
-API (FastAPI)\
-↓\
-Chroma (Vetores)\
-↓\
-Ollama (LLM local)\
-↓\
-Resposta final
-
-Serviços Docker:
-
--   ollama
--   chroma
--   api
--   evaluator
-
-------------------------------------------------------------------------
-
-# 📁 Estrutura do Projeto
-
-    self-rag/
-    │
-    ├── docker-compose.yml
-    ├── Dockerfile
-    ├── requirements.txt
-    ├── README.md
-    │
-    └── app/
-        ├── main.py
-        ├── rag.py
-        ├── ingest.py
-        ├── evaluate.py
-        ├── dataset.json
-        └── data/
-            └── livro.pdf
-
-------------------------------------------------------------------------
-
-# 🚀 Como Executar
-
-## 1️⃣ Subir os containers
-
-``` bash
-docker compose up --build
+```bash
+python -m venv .venv
+source .venv/Scripts/activate  # Windows Git Bash
+pip install -r requirements.txt
 ```
 
-## 2️⃣ Baixar modelo no Ollama
+## Configuração
 
-``` bash
-docker exec -it ollama ollama pull mistral
+Crie um arquivo `.env` na raiz do projeto:
+
+```env
+DO_API_KEY=sua_chave_api
+DO_BASE_URL=https://inference.do-ai.run/v1
+DO_MODEL=openai-gpt-oss-120b
+HF_TOKEN=seu_token_huggingface
 ```
 
-## 3️⃣ Ingerir PDF
+## Uso
 
-Coloque o livro em:
+Coloque seu documento PDF na raiz do projeto e execute:
 
-app/data/livro.pdf
-
-Execute:
-
-``` bash
-docker exec -it self-rag-api python -c "from app.ingest import ingest_pdf; ingest_pdf('app/data/livro.pdf')"
+```bash
+python main.py
 ```
 
-## 4️⃣ Fazer perguntas
+O sistema:
+1. Indexa o PDF em chunks de 800 caracteres
+2. Aguarda sua pergunta via input
+3. Busca contexto relevante no vector store
+4. Gera resposta com auto-crítica
+5. Exibe métricas RAGAS de avaliação
 
-Abra:
+## Métricas RAGAS
 
-http://localhost:8000/ask?question=O que é algoritmo?
+- **Faithfulness**: Fidelidade da resposta ao contexto
+- **Answer Relevancy**: Relevância da resposta à pergunta
+- **Context Precision**: Precisão do contexto recuperado
 
-## 5️⃣ Rodar avaliação com RAGAS
+## Estrutura do Projeto
 
-``` bash
-docker compose run evaluator
 ```
-
-------------------------------------------------------------------------
-
-# 📊 Métricas Avaliadas
-
--   Faithfulness
--   Answer Relevancy
--   Context Precision
--   Context Recall
-
-------------------------------------------------------------------------
-
-# 🔥 Possíveis Evoluções
-
--   Re-ranking
--   Relatório automático em PDF
--   Interface web
--   CI/CD para avaliação contínua
--   Comparação entre modelos
-
-------------------------------------------------------------------------
-
-# 👨‍💻 Autor
-
-Martiniano Gomes Barros Cirqueira Neto
-
-------------------------------------------------------------------------
-
-Licença: MIT
+self-rag/
+├── main.py              # Código principal
+├── requirements.txt     # Dependências
+├── .env                 # Variáveis de ambiente
+└── Apostila_Logica.pdf  # Documento de exemplo
+```
