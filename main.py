@@ -11,6 +11,7 @@ from ragas import evaluate
 from ragas.metrics import faithfulness, answer_relevancy, context_precision, context_recall
 from datasets import Dataset
 from langsmith import traceable
+from itertools import count
 
 load_dotenv()
 
@@ -136,6 +137,16 @@ def run_ragas(ragas_data, llm, embeddings):
     return result
 
 
+def salvar(df, nome_base="self-rag"):
+    os.makedirs("results", exist_ok=True)
+    for i in count(1):
+        nome = os.path.join("results", f"{nome_base}_{i}.csv")
+        if not os.path.exists(nome):
+            df.to_csv(nome, index=False, encoding="utf-8-sig", sep=";")
+            print(f"Salvo em: {nome}")
+            break
+
+
 def main():
     print("\nIndexando PDFs de ../docs/ ...\n")
     vectordb, embeddings = build_vectorstore()
@@ -160,7 +171,8 @@ def main():
             "ground_truth": ground_truths[i]
         })
 
-    run_ragas(ragas_data, llm, embeddings)
+    result = run_ragas(ragas_data, llm, embeddings)
+    salvar(result.to_pandas())
 
 
 if __name__ == "__main__":
