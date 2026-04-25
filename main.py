@@ -52,11 +52,11 @@ ground_truths = [
 
 
 def build_vectorstore():
-    loader = DirectoryLoader("../docs/", glob="**/*.pdf", loader_cls=PyPDFLoader)
+    loader = DirectoryLoader("./docs/", glob="**/*.pdf", loader_cls=PyPDFLoader)
     docs = loader.load()
 
     splitter = RecursiveCharacterTextSplitter(
-        chunk_size=800,
+        chunk_size=1200,
         chunk_overlap=100
     )
     chunks = splitter.split_documents(docs)
@@ -65,7 +65,17 @@ def build_vectorstore():
         model_name="sentence-transformers/all-MiniLM-L6-v2"
     )
 
-    vectordb = Chroma.from_documents(chunks, embedding=embeddings)
+    batch_size = 5000
+    vectordb = None
+
+    for i in range(0, len(chunks), batch_size):
+        batch = chunks[i:i + batch_size]
+
+        if vectordb is None:
+            vectordb = Chroma.from_documents(batch, embedding=embeddings)
+        else:
+            vectordb.add_documents(batch)
+    
     return vectordb, embeddings
 
 
@@ -124,7 +134,8 @@ def run_ragas(ragas_data, llm, embeddings):
         dataset,
         metrics=[faithfulness, answer_relevancy, context_precision, context_recall],
         llm=llm,
-        embeddings=embeddings
+        embeddings=embeddings,
+        raise_exceptions=False
     )
 
     print("\n=== RESULTADOS RAGAS ===")
