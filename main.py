@@ -50,14 +50,15 @@ ground_truths = [
     "Forbellone apresenta operadores aritméticos não convencionais úteis na construção de algoritmos: pot(x,y) para potenciação (x elevado a y), rad(x) para radiciação (raiz quadrada de x), mod para o resto da divisão (ex.: 9 mod 4 = 1) e div para o quociente da divisão inteira (ex.: 9 div 4 = 2). Um contador é uma variável usada para registrar quantas vezes um trecho de algoritmo é executado: é declarada com um valor inicial e incrementada (somada de uma constante, normalmente 1) a cada repetição, comportando-se como o ponteiro dos segundos de um relógio."
 ]
 
+PERSIST_DIR = "./chroma_context_db"
 
 def build_vectorstore():
     loader = DirectoryLoader("./docs/", glob="**/*.pdf", loader_cls=PyPDFLoader)
     docs = loader.load()
 
     splitter = RecursiveCharacterTextSplitter(
-        chunk_size=1200,
-        chunk_overlap=100
+        chunk_size=800,
+        chunk_overlap=200
     )
     chunks = splitter.split_documents(docs)
 
@@ -65,17 +66,24 @@ def build_vectorstore():
         model_name="sentence-transformers/all-MiniLM-L6-v2"
     )
 
-    batch_size = 5000
-    vectordb = None
+    # Ajustar conforme demanda e disponibilidade de hardware e tokens
+    batch_size = 500
 
-    for i in range(0, len(chunks), batch_size):
-        batch = chunks[i:i + batch_size]
+    vectordb = Chroma(
+        collection_name = "self-rag-contexts",
+        embeddings_function = embeddings,
+        persist_directory = PERSIST_DIR
+    )
 
-        if vectordb is None:
-            vectordb = Chroma.from_documents(batch, embedding=embeddings)
-        else:
+    if vectordb._collection.count() == 0:
+        for i in range(0, len(chunks), batch_size):
+            batch = chunks[i:i + batch_size]
             vectordb.add_documents(batch)
-    
+            print(f"  {min(i + batch_size, len(chunks))}/{len(chunks)} chunks adicionados")
+    else:
+        print(f"Coleção existente com {vectordb._collection.count()} chunks. Pulando ingestão.")
+    print("Ingestão concluída!")
+
     return vectordb, embeddings
 
 
@@ -182,8 +190,10 @@ def main():
             "ground_truth": ground_truths[i]
         })
 
-    result = run_ragas(ragas_data, llm, embeddings)
-    salvar(result.to_pandas())
+    for i in range(15):
+        print(f"=== RODADA {i+1} ===")
+        result = run_ragas(ragas_data, llm, embeddings)
+        salvar(result.to_pandas(), nome_base=f"context-rag-run-{i+1}")
 
 
 if __name__ == "__main__":
