@@ -9,16 +9,15 @@ Implementação de Self-RAG que processa documentos PDF, realiza busca semântic
 ## Funcionalidades
 
 - Indexação de documentos PDF com ChromaDB
-- Embeddings via HuggingFace (all-MiniLM-L6-v2)
+- Embeddings via OpenAI (`text-embedding-3-large` por padrão)
 - Self-RAG com auto-crítica de respostas
 - Avaliação automática com RAGAS
-- Suporte a LLMs compatíveis com OpenAI API
+- Geração de respostas via OpenAI (`gpt-5.5` por padrão)
 
 ## Requisitos
 
 - Python 3.8+
-- Chave de API para LLM (DigitalOcean AI ou OpenAI compatível)
-- Token HuggingFace (opcional)
+- Chave de API da OpenAI
 
 ## Instalação
 
@@ -33,15 +32,17 @@ pip install -r requirements.txt
 Crie um arquivo `.env` na raiz do projeto:
 
 ```env
-DO_API_KEY=sua_chave_api
-DO_BASE_URL=https://inference.do-ai.run/v1
-DO_MODEL=openai-gpt-oss-120b
-HF_TOKEN=seu_token_huggingface
+OPENAI_API_KEY=sk-sua_chave_openai
+OPENAI_MODEL=gpt-5.5
+OPENAI_EMBEDDING_MODEL=text-embedding-3-large
+OPENAI_REASONING_EFFORT=medium
+CHROMA_PERSIST_DIR=./chroma_self_db_openai
+CHROMA_COLLECTION_NAME=self_rag_contexts_openai
 ```
 
 ## Uso
 
-Coloque seu documento PDF na raiz do projeto e execute:
+Coloque os PDFs na pasta `docs/` e execute:
 
 ```bash
 python main.py
@@ -49,10 +50,10 @@ python main.py
 
 O sistema:
 1. Indexa o PDF em chunks de 800 caracteres
-2. Aguarda sua pergunta via input
+2. Executa as perguntas de benchmark configuradas em `main.py`
 3. Busca contexto relevante no vector store
 4. Gera resposta com auto-crítica
-5. Exibe métricas RAGAS de avaliação
+5. Salva métricas RAGAS em CSV
 
 ## Métricas RAGAS
 
@@ -67,5 +68,5 @@ self-rag/
 ├── main.py              # Código principal
 ├── requirements.txt     # Dependências
 ├── .env                 # Variáveis de ambiente
-└── Apostila_Logica.pdf  # Documento de exemplo
+└── docs/                # PDFs usados como base de conhecimento
 ```
